@@ -1,0 +1,1 @@
+console.log('Starting TypeScript-A-B-Testing service...');\n
