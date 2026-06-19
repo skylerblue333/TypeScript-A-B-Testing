@@ -1,26 +1,41 @@
 import express from 'express';
-import cors from 'cors';
+import { z } from 'zod';
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 
-app.get('/health', (req, res) => {
-    res.json({ status: 'healthy', domain: 'testing', uptime: process.uptime() });
+// Feature flag and A/B test assignment engine
+
+const experimentSchema = z.object({
+  user_id: z.string(),
+  experiment: z.string()
 });
 
-app.post('/api/v1/process', (req, res) => {
-    const { payload } = req.body;
-    if (!payload) return res.status(400).json({ error: 'Missing payload' });
-    res.status(201).json({ 
-        success: true, 
-        processed: payload, 
-        timestamp: new Date().toISOString() 
-    });
+const experiments: Record<string, string[]> = {
+  'homepage-redesign': ['control', 'variant_a', 'variant_b'],
+  'checkout-flow': ['control', 'simplified']
+};
+
+app.post('/api/v1/assign', (req, res) => {
+  try {
+    const { user_id, experiment } = experimentSchema.parse(req.body);
+    const variants = experiments[experiment];
+    if (!variants) return res.status(404).json({ error: 'Experiment not found' });
+    const hash = user_id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const variant = variants[hash % variants.length];
+    res.json({ user_id, experiment, variant });
+  } catch (e) {
+    res.status(400).json({ error: 'Invalid request' });
+  }
+});
+
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', service: 'TypeScript-A-B-Testing', version: '3.0.0' });
 });
 
 if (require.main === module) {
-    app.listen(3000, () => console.log('TypeScript-A-B-Testing API running on port 3000'));
+  app.listen(8080, () => console.log('TypeScript-A-B-Testing running on :8080'));
 }
 
 export default app;
