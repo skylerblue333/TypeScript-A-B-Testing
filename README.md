@@ -1,1 +1,18 @@
-# TypeScript-A-B-Testing\n\n## Overview\nEnterprise-grade a b testing implementation in TypeScript.\n\n## Quick Start (1-Click Build)\n\n```bash\ngit clone https://github.com/skylerblue333/TypeScript-A-B-Testing.git\ncd TypeScript-A-B-Testing\n# Build instructions depend on the language\n```\n
+# TypeScript-A-B-Testing
+
+![CI](https://github.com/skylerblue333/TypeScript-A-B-Testing/workflows/CI/badge.svg)
+
+Production-ready TypeScript Express API for testing operations.
+
+## Features
+- Fully typed Express handlers
+- Supertest integration testing
+- Docker containerization
+- GitHub Actions CI Pipeline
+
+## Quick Start
+```bash
+npm ci
+npm test
+npm run build && npm start
+```
