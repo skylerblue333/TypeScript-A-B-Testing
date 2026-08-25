@@ -1,44 +1,66 @@
-<!-- PORTFOLIO PROJECT PROFILE: maintained by the repository owner -->
+# Sky A/B Testing
 
-## Project profile and code-audit snapshot
+A focused TypeScript/Express service for deterministic weighted experiment assignment. This repository is an engineering-beta component, not a hosted experimentation platform.
 
-**What this is:** **TypeScript-A-B-Testing** is a public repository described as: “Enterprise-grade a b testing implementation in TypeScript. #SkyCoin4444 #AI #Blockchain #DevOps #Innovation” Its dominant language signals are **TypeScript (2 files), JavaScript (1 files)**.
+## Implemented behavior
 
-**Why it has value:** Its value is best understood through the implementation evidence currently present in the repository: **18 tracked files** were observed in the shallow audit, with the source structure and existing documentation providing the project’s specific context. This README does not treat a prototype, experiment, or archive as a production system without supporting evidence.
+- Register named experiments with 2–20 variants.
+- Require integer variant weights that total exactly 100.
+- Reject duplicate experiment names and duplicate variant names.
+- Deterministically assign a user to a variant using SHA-256 of the experiment name and user identifier.
+- List configured experiments.
+- Health and readiness endpoints.
+- Bounded JSON request bodies and validated request fields.
+- Automated TypeScript build, Jest tests, dependency audit, Docker build, and non-root image verification.
 
-**Implementation evidence:** 1 test-related file(s) detected; 1 dependency or package manifest(s) detected; 2 build/CI/infrastructure signal(s) detected; and 3 documentation or governance file(s) detected. Test filenames observed include `tests/index.test.ts`. Dependency or package files include `package.json`. Build, CI, or infrastructure signals include `Dockerfile`, `.github/workflows/ci.yml`.
+A built-in `homepage-redesign` example remains available for local demonstration.
 
-**Current status:** The repository is tracked on the `main` branch. The existing source tree, configuration, tests, workflows, and documentation remain authoritative for supported behavior and maturity. A code audit is not a production-readiness certification, and the presence of a test or workflow file does not establish that all checks pass.
+## Run locally
 
-**Relationship to the wider portfolio:** This repository is one focused component of the broader Skyler Blue Spillers portfolio across AI, software engineering, cloud and DevOps, cybersecurity, blockchain, finance, education, social systems, and creative work. It may provide a service boundary, implementation pattern, experiment, archive, or reusable idea for related repositories. Treat repositories as technical dependencies only where documented interfaces and verified project requirements support that relationship.
+```bash
+npm ci
+npm run build
+npm test -- --runInBand
+npm start
+```
 
-**Quality and security note:** No obvious secret-like pattern was detected by the limited static scan; this is not a substitute for a security audit. No TODO/FIXME marker was detected in the scanned text files.
+The service listens on port `8080`.
 
----
+Create an experiment:
 
-# Typescript A B Testing
+```json
+{
+  "name": "checkout-copy",
+  "variants": [
+    { "name": "control", "weight": 50 },
+    { "name": "short-copy", "weight": 50 }
+  ]
+}
+```
 
-![GitHub stars](https://img.shields.io/github/stars/skylerblue333/TypeScript-A-B-Testing?style=flat-square)
-![GitHub license](https://img.shields.io/github/license/skylerblue333/TypeScript-A-B-Testing?style=flat-square)
+Submit it to `POST /api/v1/experiments`, then assign with `POST /api/v1/assign` using a body such as:
 
-## 🌟 Overview
-**TypeScript-A-B-Testing** is a professional-grade project within the **SkyCoin4444** ecosystem. It focuses on delivering high-value solutions in the domain of **TypeScript, JavaScript**.
+```json
+{
+  "user_id": "user-123",
+  "experiment": "checkout-copy"
+}
+```
 
-## 🚀 Key Features
-- **Scalable Architecture**: Designed for enterprise-level growth and performance.
-- **Modern Standards**: Implements best practices for clean code and maintainability.
-- **Robust Integration**: Built to work seamlessly within modern cloud-native environments.
+The same experiment/user pair receives the same variant while the experiment definition is unchanged.
 
-## 🛠️ Technology Stack
-- **Primary Domain**: TypeScript, JavaScript
-- **Ecosystem**: SkyCoin4444 Digital Platform
+## Architecture
 
-## 📂 Structure
-The project is organized into a modular structure to ensure clarity and ease of development.
+`src/index.ts` contains the HTTP boundary, Zod schemas, deterministic bucket function, and in-memory experiment registry. This intentionally keeps the repository small and inspectable.
 
-## 👨‍💻 Author
-**Skyler Blue Spillers**
-*Professional Chess Player & Software Engineer*
+## SKYCOIN4444 integration
 
----
-*Powered by SkyCoin4444*
+The service can provide deterministic experiment assignment for SKYCOIN4444 UI, feed, marketplace, or product experiments through its HTTP interface. Integrations should preserve the stable experiment/user identifiers used for assignment.
+
+## Status and limitations
+
+**Status: Engineering Beta.** Automated verification is present, but deployment has not been verified.
+
+The current service keeps experiments in process memory. It does not provide durable storage, experiment editing/history, exposure-event collection, statistical analysis, identity governance, tenant isolation, RBAC, distributed consistency, or production deployment. It is not GA or enterprise-ready.
+
+See `SECURITY.md` and `CHANGELOG.md` for operating boundaries and productization history.
