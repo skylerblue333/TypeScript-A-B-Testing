@@ -1,12 +1,29 @@
-name: CI
-on: [push, pull_request]
+name: ab-testing-ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
-      - run: npm test
+      - name: Install
+        run: npm install --ignore-scripts
+      - name: Typecheck and build
+        run: npm run build
+      - name: Tests
+        run: npm test -- --runInBand
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=critical
+      - name: Build image
+        run: docker build -t sky-ab-testing:ci .
+      - name: Verify non-root image
+        run: test "$(docker run --rm --entrypoint id sky-ab-testing:ci -u)" != "0"
